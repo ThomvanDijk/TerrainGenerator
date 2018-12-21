@@ -48,7 +48,9 @@ int main(void)
 
 	// Open a window and create its OpenGL context
 	window = glfwCreateWindow(SWIDTH, SHEIGHT, "Hello Cube", NULL, NULL);
-	if (window == NULL) {
+
+	if (window == NULL) 
+	{
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
 		glfwTerminate();
@@ -59,7 +61,9 @@ int main(void)
 
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
-	if (glewInit() != GLEW_OK) {
+
+	if (glewInit() != GLEW_OK) 
+	{
 		fprintf(stderr, "Failed to initialize GLEW\n");
 		getchar();
 		glfwTerminate();
@@ -83,7 +87,7 @@ int main(void)
 
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
-		glm::vec3(4, 4, 0), // Camera is at (4,3,3), in World Space
+		glm::vec3(0, 0, 3), // Camera is at (4,3,3), in World Space
 		glm::vec3(0, 0, 0), // and looks at the origin
 		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
@@ -95,19 +99,121 @@ int main(void)
 	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
 	// GRID COORDINATES
+	const int rows = 10;
+	const int cols = 10;
+	int scale = 20; // Spacing between vertices
+
+	//float points[rows * cols * 2 * 3];
+	//int indices[(rows * cols * 2 * 3) / 2] = {}; // Half the number of points
+
+	/*float points[] =
+	{
+	//   x,    y,    z
+		0.0f, 1.0f, 0.0f,	// 0
+		0.0f, 0.0f, 0.0f,	// 1
+		1.0f, 1.0f, 0.0f,	// 2
+		1.0f, 0.0f, 0.0f,	// 3
+		2.0f, 1.0f, 0.0f,	// 4
+		2.0f, 0.0f, 0.0f,	// 5
+		0.0f, -1.0f, 0.0f,	// 6
+		1.0f, -1.0f, 0.0f,	// 7
+		2.0f, -1.0f, 0.0f,	// 8
+		0.0f, -2.0f, 0.0f,	// 9
+	};
+
+	// 0 - 2 - 4
+	// | / | / |
+	// 1 - 3 - 5
+	// | \ | \ |
+	// 6 - 7 - 8
+
+	int indices[] =
+	{
+		0, 1, 2, 
+		3, 4, 5, 5, 8, 8,
+		5, 8, 3, // New strip
+		7, 1, 6
+	}; */
+
 	float points[] =
 	{
-		-0.5f,  0.5f,  0.0f, // x, y, z
-		 0.5f,  0.5f,  1.0f,
-		-0.5f, -0.5f, -0.5f,
-		 0.5f, -0.5f,  0.0f
+		//   x,    y,    z
+		0.0f, 1.0f, 0.0f,	// 0
+		0.0f, 0.0f, 0.0f,	// 1
+		1.0f, 1.0f, 0.0f,	// 2
+		1.0f, 0.0f, 0.0f,	// 3
+		2.0f, 1.0f, 0.0f,	// 4
+		2.0f, 0.0f, 0.0f,	// 5
+		0.0f, -1.0f, 0.0f,	// 6
+		1.0f, -1.0f, 0.0f,	// 7
+		2.0f, -1.0f, 0.0f,	// 8
+		0.0f, -2.0f, 0.0f,	// 9
 	};
+
+	// 0 - 2 - 4
+	// | / | / |
+	// 1 - 3 - 5
+	// | / | / |
+	// 6 - 7 - 8
 
 	int indices[] =
 	{
 		0, 1, 2,
-		2, 1, 3
+		3, 4, 5,
+		//5, 8, 7, // New strip
+		//3, 6, 1
 	};
+
+	/*const int mapSize = 10;
+
+	float points[mapSize * mapSize * 3] = {};
+
+	for (int x = 0; x < mapSize; x++)
+	{
+		for (int z = 0; z < mapSize; z++)
+		{
+			int pos = (x * mapSize + z) * 3;
+			points[pos] = x / 5.0f;
+			points[pos + 1] = z / 5.0f;
+			points[pos + 2] = 0.0f;
+		}
+	}
+
+	int indices[mapSize * mapSize * 6] = {};
+	int index = 0;
+
+	for (int x = 0; x < mapSize; x++)
+	{
+		for (int z = 0; z < mapSize - 1; z++)
+		{
+			int offset = x * mapSize + z;
+			indices[index] = offset + 0;
+			indices[index + 1] = offset + 1;
+			indices[index + 2] = offset + mapSize;
+			indices[index + 3] = offset + 1;
+			indices[index + 4] = offset + mapSize + 1;
+			indices[index + 5] = offset + mapSize;
+			index += 6;
+		}
+	}*/
+
+	//int counter = 0;
+
+	/*for (int y = 0; y < rows; y++) 
+	{
+		for (int x = 0; x < cols; x++) 
+		{
+			points[counter] = x * scale;
+			counter++;
+
+			points[counter] = y * scale;
+			counter++;
+
+			points[counter] = 0; // z
+			counter++;
+		}
+	}*/
+
 
 	// VERTEX BUFFER
 	GLuint vbo = 0; // Vertex Buffer Object
@@ -123,9 +229,9 @@ int main(void)
 	GLuint vao = 0; // Vertex Array Object
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	//glEnableVertexAttribArray(0);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -147,7 +253,7 @@ int main(void)
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 		// Draw the GL_TRIANGLE_STRIP!
-		glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices), GL_UNSIGNED_INT, 0);
 
 		glDisableVertexAttribArray(0);
 
