@@ -1,6 +1,6 @@
 # CMake entry point
 cmake_minimum_required (VERSION 2.6)
-project (3D_Terrain_Generator)
+project (Terrain_Generator)
 
 # Compile external dependencies.
 find_package(OpenGL REQUIRED)

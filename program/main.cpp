@@ -25,8 +25,6 @@ using namespace glm;
 #include "shader.h"
 
 
-float GetRandomFloat(void);
-
 #define SWIDTH 1200
 #define SHEIGHT 800
 
@@ -90,7 +88,7 @@ int main(void)
 
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
-		glm::vec3(2, -1, 2), // Camera is at (0, 0, 3), in World Space
+		glm::vec3(2, -1, 6), // Camera is at (0, 0, 3), in World Space
 		glm::vec3(2, 2, 0), // and looks at the origin
 		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
@@ -101,20 +99,19 @@ int main(void)
 	// Our ModelViewProjection : multiplication of our 3 matrices
 	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
-
+	// Create the terrain
 
 	// For the use of the rand() function
 	srand(time(NULL));
 
-	const int width = 6;
-	const int height = 6;
+	const int width = 8;
+	const int height = 8;
 	const float scale = 1; // Spacing between vertices
 
 	float vertices[width * height * 3] = {};
 	int indices[width * height * 3] = {};
 
 	// Set up vertices
-	
 	for (int y = 0; y < height; y++)
 	{
 		int base = y * width;
@@ -137,7 +134,6 @@ int main(void)
 	{
 		int base = y * width;
 
-		//indices[i++] = (uint16)base;
 		for (int x = 0; x < width; x++)
 		{
 			indices[i++] = base + x;
@@ -147,8 +143,8 @@ int main(void)
 		// add a degenerate triangle (except in a last row)
 		if (y < height - 2)
 		{
-			indices[i++] = (y + 1) * width + (width - 1);
-			indices[i++] = (y + 1) * width;
+			indices[i++] = ((y + 1) * width + (width - 1)) - 1;
+			indices[i++] = ((y + 1) * width) - 1;
 		}
 
 		// Add the last index...
@@ -160,8 +156,6 @@ int main(void)
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(65535);
-
-
 
 	// VERTEX BUFFER
 	GLuint vbo = 0; // Vertex Buffer Object
@@ -177,9 +171,6 @@ int main(void)
 	GLuint vao = 0; // Vertex Array Object
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-	//glEnableVertexAttribArray(0);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -210,6 +201,9 @@ int main(void)
 
 		// Poll events for mouse and key input
 		glfwPollEvents();
+
+		//float random = rand() % 11; // from 0 to 10
+		//vertices[2] = 10.0f;
 	}
 
 	// Cleanup vbo, eab, vao and shader
