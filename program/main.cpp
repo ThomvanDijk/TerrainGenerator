@@ -8,6 +8,7 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -24,8 +25,10 @@ using namespace glm;
 #include "shader.h"
 
 
-#define SWIDTH 800
-#define SHEIGHT 600
+float GetRandomFloat(void);
+
+#define SWIDTH 1200
+#define SHEIGHT 800
 
 #define VERTEXSHADER "shaders/sprite.vert"		// vertexshader name
 #define FRAGMENTSHADER "shaders/sprite.frag"	// fragmentshader name
@@ -87,8 +90,8 @@ int main(void)
 
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
-		glm::vec3(0, 0, 3), // Camera is at (4,3,3), in World Space
-		glm::vec3(0, 0, 0), // and looks at the origin
+		glm::vec3(2, -1, 2), // Camera is at (0, 0, 3), in World Space
+		glm::vec3(2, 2, 0), // and looks at the origin
 		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
 
@@ -98,128 +101,73 @@ int main(void)
 	// Our ModelViewProjection : multiplication of our 3 matrices
 	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
-	// GRID COORDINATES
-	const int rows = 10;
-	const int cols = 10;
-	int scale = 20; // Spacing between vertices
 
-	//float points[rows * cols * 2 * 3];
-	//int indices[(rows * cols * 2 * 3) / 2] = {}; // Half the number of points
 
-	/*float points[] =
+	// For the use of the rand() function
+	srand(time(NULL));
+
+	const int width = 6;
+	const int height = 6;
+	const float scale = 1; // Spacing between vertices
+
+	float vertices[width * height * 3] = {};
+	int indices[width * height * 3] = {};
+
+	// Set up vertices
+	
+	for (int y = 0; y < height; y++)
 	{
-	//   x,    y,    z
-		0.0f, 1.0f, 0.0f,	// 0
-		0.0f, 0.0f, 0.0f,	// 1
-		1.0f, 1.0f, 0.0f,	// 2
-		1.0f, 0.0f, 0.0f,	// 3
-		2.0f, 1.0f, 0.0f,	// 4
-		2.0f, 0.0f, 0.0f,	// 5
-		0.0f, -1.0f, 0.0f,	// 6
-		1.0f, -1.0f, 0.0f,	// 7
-		2.0f, -1.0f, 0.0f,	// 8
-		0.0f, -2.0f, 0.0f,	// 9
-	};
+		int base = y * width;
 
-	// 0 - 2 - 4
-	// | / | / |
-	// 1 - 3 - 5
-	// | \ | \ |
-	// 6 - 7 - 8
-
-	int indices[] =
-	{
-		0, 1, 2, 
-		3, 4, 5, 5, 8, 8,
-		5, 8, 3, // New strip
-		7, 1, 6
-	}; */
-
-	float points[] =
-	{
-		//   x,    y,    z
-		0.0f, 1.0f, 0.0f,	// 0
-		0.0f, 0.0f, 0.0f,	// 1
-		1.0f, 1.0f, 0.0f,	// 2
-		1.0f, 0.0f, 0.0f,	// 3
-		2.0f, 1.0f, 0.0f,	// 4
-		2.0f, 0.0f, 0.0f,	// 5
-		0.0f, -1.0f, 0.0f,	// 6
-		1.0f, -1.0f, 0.0f,	// 7
-		2.0f, -1.0f, 0.0f,	// 8
-		0.0f, -2.0f, 0.0f,	// 9
-	};
-
-	// 0 - 2 - 4
-	// | / | / |
-	// 1 - 3 - 5
-	// | / | / |
-	// 6 - 7 - 8
-
-	int indices[] =
-	{
-		0, 1, 2,
-		3, 4, 5,
-		//5, 8, 7, // New strip
-		//3, 6, 1
-	};
-
-	/*const int mapSize = 10;
-
-	float points[mapSize * mapSize * 3] = {};
-
-	for (int x = 0; x < mapSize; x++)
-	{
-		for (int z = 0; z < mapSize; z++)
+		for (int x = 0; x < width; x++)
 		{
-			int pos = (x * mapSize + z) * 3;
-			points[pos] = x / 5.0f;
-			points[pos + 1] = z / 5.0f;
-			points[pos + 2] = 0.0f;
+			int random = rand() % 3; // from 0 to 2
+			int index = 3 * (base + x);
+
+			vertices[index + 0] = (float)x;
+			vertices[index + 1] = (float)y;
+			vertices[index + 2] = random * 0.1f;
 		}
 	}
 
-	int indices[mapSize * mapSize * 6] = {};
-	int index = 0;
+	// Set up indices
+	int i = 0;
 
-	for (int x = 0; x < mapSize; x++)
+	for (int y = 0; y < height - 1; y++)
 	{
-		for (int z = 0; z < mapSize - 1; z++)
+		int base = y * width;
+
+		//indices[i++] = (uint16)base;
+		for (int x = 0; x < width; x++)
 		{
-			int offset = x * mapSize + z;
-			indices[index] = offset + 0;
-			indices[index + 1] = offset + 1;
-			indices[index + 2] = offset + mapSize;
-			indices[index + 3] = offset + 1;
-			indices[index + 4] = offset + mapSize + 1;
-			indices[index + 5] = offset + mapSize;
-			index += 6;
+			indices[i++] = base + x;
+			indices[i++] = base + width + x;
 		}
-	}*/
 
-	//int counter = 0;
-
-	/*for (int y = 0; y < rows; y++) 
-	{
-		for (int x = 0; x < cols; x++) 
+		// add a degenerate triangle (except in a last row)
+		if (y < height - 2)
 		{
-			points[counter] = x * scale;
-			counter++;
-
-			points[counter] = y * scale;
-			counter++;
-
-			points[counter] = 0; // z
-			counter++;
+			indices[i++] = (y + 1) * width + (width - 1);
+			indices[i++] = (y + 1) * width;
 		}
-	}*/
+
+		// Add the last index...
+		if (y < height - 1)
+		{
+			indices[i++] = 65535;
+		}
+	}
+
+	glEnable(GL_PRIMITIVE_RESTART);
+	glPrimitiveRestartIndex(65535);
+
 
 
 	// VERTEX BUFFER
 	GLuint vbo = 0; // Vertex Buffer Object
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * sizeof(points), points, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	GLuint eab = 0; // Element Array Buffer
 	glGenBuffers(1, &eab);
@@ -256,7 +204,7 @@ int main(void)
 		glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices), GL_UNSIGNED_INT, 0);
 
 		glDisableVertexAttribArray(0);
-
+		
 		// Swap buffers
 		glfwSwapBuffers(window);
 
