@@ -25,11 +25,25 @@ using namespace glm;
 #include "shader.h"
 
 
+#define VERTEXSHADER "shaders/sprite.vert"		// vertexshader name
+#define FRAGMENTSHADER "shaders/sprite.frag"	// fragmentshader name
+
 #define SWIDTH 1200
 #define SHEIGHT 800
 
-#define VERTEXSHADER "shaders/sprite.vert"		// vertexshader name
-#define FRAGMENTSHADER "shaders/sprite.frag"	// fragmentshader name
+#define MESH_WIDTH 9
+#define MESH_HEIGHT 8
+
+
+struct triangleMesh
+{
+	float vertices[MESH_WIDTH * MESH_HEIGHT * 3] = {};
+	int indices[MESH_WIDTH * MESH_HEIGHT * 3] = {};
+};
+
+typedef struct triangleMesh Mesh;
+
+Mesh GenerateMesh(void);
 
 int main(void)
 {
@@ -104,69 +118,18 @@ int main(void)
 	// For the use of the rand() function
 	srand(time(NULL));
 
-	const int width = 8;
-	const int height = 8;
-	const float scale = 1; // Spacing between vertices
-
-	float vertices[width * height * 3] = {};
-	int indices[width * height * 3] = {};
-
-	// Set up vertices
-	for (int y = 0; y < height; y++)
-	{
-		int base = y * width;
-
-		for (int x = 0; x < width; x++)
-		{
-			int random = rand() % 3; // from 0 to 2
-			int index = 3 * (base + x);
-
-			vertices[index + 0] = (float)x;
-			vertices[index + 1] = (float)y;
-			vertices[index + 2] = random * 0.1f;
-		}
-	}
-
-	// Set up indices
-	int i = 0;
-
-	for (int y = 0; y < height - 1; y++)
-	{
-		int base = y * width;
-
-		for (int x = 0; x < width; x++)
-		{
-			indices[i++] = base + x;
-			indices[i++] = base + width + x;
-		}
-
-		// add a degenerate triangle (except in a last row)
-		if (y < height - 2)
-		{
-			indices[i++] = ((y + 1) * width + (width - 1)) - 1;
-			indices[i++] = ((y + 1) * width) - 1;
-		}
-
-		// Add the last index...
-		if (y < height - 1)
-		{
-			indices[i++] = 65535;
-		}
-	}
-
-	glEnable(GL_PRIMITIVE_RESTART);
-	glPrimitiveRestartIndex(65535);
+	Mesh mesh = GenerateMesh();
 
 	// VERTEX BUFFER
 	GLuint vbo = 0; // Vertex Buffer Object
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * sizeof(mesh.vertices), mesh.vertices, GL_STREAM_DRAW);
 
 	GLuint eab = 0; // Element Array Buffer
 	glGenBuffers(1, &eab);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eab);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mesh.indices), mesh.indices, GL_STREAM_DRAW);
 
 	GLuint vao = 0; // Vertex Array Object
 	glGenVertexArrays(1, &vao);
@@ -192,7 +155,7 @@ int main(void)
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 		// Draw the GL_TRIANGLE_STRIP!
-		glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLE_STRIP, sizeof(mesh.indices), GL_UNSIGNED_INT, 0);
 
 		glDisableVertexAttribArray(0);
 		
@@ -216,5 +179,60 @@ int main(void)
 	glfwTerminate();
 
 	return 0;
+}
+
+Mesh GenerateMesh()
+{
+	Mesh mesh;
+
+	const float scale = 1; // Spacing between vertices
+
+	// Set up vertices
+	for (int y = 0; y < MESH_HEIGHT; y++)
+	{
+		int base = y * MESH_WIDTH;
+
+		for (int x = 0; x < MESH_WIDTH; x++)
+		{
+			int random = rand() % 3; // from 0 to 2
+			int index = 3 * (base + x);
+
+			mesh.vertices[index + 0] = (float)x;
+			mesh.vertices[index + 1] = (float)y;
+			mesh.vertices[index + 2] = random * 0.1f;
+		}
+	}
+
+	// Set up indices
+	int i = 0;
+
+	for (int y = 0; y < MESH_HEIGHT - 1; y++)
+	{
+		int base = y * MESH_WIDTH;
+
+		for (int x = 0; x < MESH_WIDTH; x++)
+		{
+			mesh.indices[i++] = base + x;
+			mesh.indices[i++] = base + MESH_WIDTH + x;
+		}
+
+		// add a degenerate triangle (except in a last row)
+		if (y < MESH_HEIGHT - 2)
+		{
+			mesh.indices[i++] = ((y + 1) * MESH_WIDTH + (MESH_WIDTH - 1)) - 1;
+			mesh.indices[i++] = ((y + 1) * MESH_WIDTH) - 1;
+		}
+
+		// Add the last index...
+		if (y < MESH_HEIGHT - 1)
+		{
+			mesh.indices[i++] = 65535;
+		}
+	}
+
+	glEnable(GL_PRIMITIVE_RESTART);
+	glPrimitiveRestartIndex(65535);
+
+	return mesh;
 }
 
